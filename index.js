@@ -18,7 +18,7 @@ searchHistoryMessage.style.display = 'none';
 const storageLoadedDataField = 'loadedData';
 const storageHistoryQueueField = 'historyQueue';
 
-const maxApiSuggestNumber = 10;
+const maxApiSuggestNumber = 5;
 const maxStoredSuggestNumber = 5;
 const maxSearchHistoryItemsNumber = 3;
 
@@ -143,6 +143,8 @@ async function renderSuggestList() {
     dataLoaded.length === 0 && (suggestHeaderNoRec.style.display = 'block');
 
     suggests.style.display = 'block';
+
+    dataLoaded = dataLoaded.slice(0, maxApiSuggestNumber + maxStoredSuggestNumber - dataStored.length);
 
     dataLoaded.forEach((dataItem) => {
         const suggestListItem = buildSuggestItem(dataItem);
