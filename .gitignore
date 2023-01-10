@@ -1,0 +1,31 @@
+# OS X junk
+.AppleDouble
+.DS_Store
+.Spotlight-V100
+.Trashes
+
+# Windows junk
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+.vscode
+.idea
+.settings
+.vim-arsync
+.project
+.pydevproject
+*.iml
+*.ipr
+*.iws
+.sublime*
+.remote-sync.*
+*~
+*.swp
+.ropeproject
+.cov2emacs.log
+.coverage
+
+node_modules
+yarn-error.log
+npm-debug.log

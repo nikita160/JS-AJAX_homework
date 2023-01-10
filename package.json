@@ -1,0 +1,22 @@
+{
+  "name": "js-ajax_homework",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:nikita160/JS-AJAX_homework.git",
+  "author": "'Nikita Maslennikov' <nikitax160@yandex.ru>",
+  "license": "MIT",
+  "scripts": {
+    "postinstall": "cp ./githooks/* .git/hooks",
+    "lint-staged": "lint-staged",
+    "http-server": "http-server",
+    "deploy": "yarn build && gh-pages -d dist"
+  },
+  "devDependencies": {
+    "eslint": "8.29.0",
+    "eslint-config-prettier": "8.5.0",
+    "eslint-plugin-prettier": "4.2.1",
+    "http-server": "14.1.1",
+    "lint-staged": "13.1.0",
+    "prettier": "2.8.0"
+  }
+}
