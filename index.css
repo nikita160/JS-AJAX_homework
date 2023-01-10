@@ -1,0 +1,236 @@
+:root {
+    --main-bg-color: rgb(44, 60, 76);
+    --accent-color: rgb(255, 234, 0);
+    --action-color: #2196f3;
+}
+
+body {
+    font: 20px/1.4 Arial, sans-serif;
+    color: rgb(70, 70, 70);
+}
+
+.header {
+    background-color: var(--main-bg-color);
+    padding: 2rem 12rem;
+
+    font: 20px/1.4 Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header__container:link,
+visited,
+hover,
+active {
+    text-decoration: none;
+    width: 50%;
+}
+
+.header__title {
+    padding: 1rem;
+    color: #fff;
+    border-color: #fff;
+    border-bottom: solid 12px;
+    border-left: solid 8px;
+    font-family: Righteous, sans-serif;
+}
+
+.header__logo {
+    width: 60px;
+    height: 60px;
+    display: block;
+    margin-left: 2rem;
+}
+
+.layout {
+    padding: 2rem 12rem;
+    display: flex;
+}
+
+.main-container {
+    border-right: 1px solid rgba(0, 0, 0, 0.26);
+    padding-right: 2rem;
+    flex: 0 0 60%;
+}
+
+.inputContainer {
+    position: relative;
+}
+
+.suggests {
+    position: absolute;
+    background-color: #fff;
+    display: none;
+
+    width: 100%;
+    top: 100%;
+    box-shadow: 0 5px 10px rgb(189, 189, 189);
+    z-index: 10;
+    list-style: none;
+}
+
+.suggest__header {
+    font-size: 55%;
+    margin: 1rem 2rem;
+    color: var(--action-color);
+}
+
+.suggest__header-norec {
+    display: none;
+    font-size: 14px;
+}
+
+.suggest-list {
+    list-style: none;
+    font-size: 65%;
+    padding: 0;
+}
+
+.suggest-list__item {
+    padding: 1rem 2rem;
+    display: flex;
+}
+
+.suggest-list__item-stored {
+    color: rgb(130, 28, 130);
+    font-weight: bold;
+}
+
+.suggest-list__item:not(:last-of-type) {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.suggest-list__item:hover {
+    background-color: rgb(207, 207, 207);
+    cursor: pointer;
+}
+
+.suggest-list__title {
+    flex-basis: 50%;
+}
+
+.suggest-list__title::before {
+    display: inline-block;
+    content: url('icons/picture.svg');
+    height: 12px;
+    width: 12px;
+    margin-right: 5px;
+}
+
+.suggest-list__creator {
+    flex-basis: 40%;
+    margin-left: 2rem;
+}
+
+.suggest-list__creator::before {
+    display: inline-block;
+    content: url('icons/painter.svg');
+    height: 12px;
+    width: 12px;
+    margin-right: 5px;
+}
+
+.art {
+    background-color: rgb(86, 110, 142);
+    box-shadow: 0 5px 10px rgb(189, 189, 189);
+    padding: 2rem;
+}
+
+.art__title {
+    padding: 1rem;
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    align-items: center;
+    color: var(--accent-color);
+    /* font-family: Righteous, sans-serif; */
+    font: 26px/1.4 Righteous, sans-serif;
+}
+
+.art__production-year {
+    text-align: center;
+    color: #fff;
+}
+
+.art__image-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+    padding: 20px;
+    border: #fff 8px solid;
+    /* background-color: rgb(224, 187, 0); */
+    max-height: 450px;
+}
+
+.art__image {
+    display: block;
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+.art__info {
+    display: flex;
+    justify-content: center;
+}
+
+.art__creators {
+    margin-top: 2rem;
+    list-style: none;
+    padding: 0;
+    color: #fff;
+    text-align: center;
+}
+
+.art__note {
+    font-size: 50%;
+}
+
+.art__note:before {
+    content: 'Note: ';
+    color: var(--accent-color);
+}
+
+.side-container {
+    margin-left: 2rem;
+}
+
+.search-history__header {
+    color: rgb(70, 70, 70);
+    font: 20px/1.4 Arial, sans-serif;
+}
+
+.search-history__list {
+    list-style: none;
+    display: none;
+    padding: 0;
+    font-size: 65%;
+}
+
+.search-history__item {
+    margin-top: 1rem;
+}
+
+.search-history__item:hover {
+    cursor: pointer;
+    color: var(--action-color);
+}
+
+/* .search-history__item:not(:last-of-type) {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+} */
+
+.search-history__message {
+    display: none;
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.error-message {
+    text-align: center;
+    display: none;
+    background-color: rgb(242, 174, 174);
+    border: solid 3px red;
+    color: red;
+}
