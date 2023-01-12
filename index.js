@@ -44,12 +44,12 @@ document.addEventListener('click', (event) => {
 const api = new SearchAPI();
 
 function SearchAPI() {
-    const buildUrl = (keyword) => {
-        return `https://api.smk.dk/api/v1/art/search?keys=${keyword}%2A&qfields=titles&qfields=creator&qfields=tags&qfields=content_subject&facets=has_image&filters=%5Bhas_image%3Atrue%5D&offset=0&rows=${MAX_SUGGEST_NUMBER}&lang=en`;
+    const buildUrl = (keyword, number) => {
+        return `https://api.smk.dk/api/v1/art/search?keys=${keyword}%2A&qfields=titles&qfields=creator&qfields=tags&qfields=content_subject&facets=has_image&filters=%5Bhas_image%3Atrue%5D&offset=0&rows=${number}&lang=en`;
     };
 
-    const loadData = async (keyword) => {
-        const response = await fetch(buildUrl(keyword), {
+    const loadData = async (keyword, number) => {
+        const response = await fetch(buildUrl(keyword, number), {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -63,8 +63,8 @@ function SearchAPI() {
         return response.json();
     };
 
-    this.getDataByKeyword = async (keyword) => {
-        const data = await loadData(keyword);
+    this.getDataByKeyword = async (keyword, number) => {
+        const data = await loadData(keyword, number);
         const result = data.items.map((item) => {
             return {
                 id: item.object_number,
@@ -140,8 +140,12 @@ function buildLocalSuggestArray(keyword) {
 }
 
 async function buildApiSuggestArray(keyword) {
-    const dataArray = await api.getDataByKeyword(keyword);
-    return { dataArray, keyword };
+    const localDataArray = buildLocalSuggestArray(keyword);
+    let apiDataArray = await api.getDataByKeyword(keyword, currentLocalSuggestLength + MAX_SEARCH_HISTORY_ITEMS_NUMBER);
+    apiDataArray = apiDataArray.filter(
+        (apiDataItem) => !localDataArray.find((localDataItem) => localDataItem.id === apiDataItem.id)
+    );
+    return { dataArray: apiDataArray, keyword };
 }
 
 function buildUlByDataArray(dataArray, isLocal) {
