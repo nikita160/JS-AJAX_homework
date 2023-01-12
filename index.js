@@ -28,19 +28,16 @@ resultContainer.style.display = 'none';
 
 searchInput.addEventListener('focus', inputHandler);
 searchInput.addEventListener('input', inputHandler);
-
-document.addEventListener('click', (event) => {
-    if (event.target !== searchInput) {
-        suggests.style.display = 'none';
-    }
-});
-
-searchInput.setAttribute('tabindex', 0);
-
 searchInput.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
         suggests.style.display = 'none';
         searchInput.value = '';
+    }
+});
+
+document.addEventListener('click', (event) => {
+    if (event.target !== searchInput) {
+        suggests.style.display = 'none';
     }
 });
 
@@ -177,8 +174,6 @@ function updateStoredData(data) {
     localData = localData ? localData.concat(data) : [data];
     localStorage.setItem(storageLoadedDataField, JSON.stringify(localData));
 }
-
-// /////////////////////
 
 function buildSuggestItem(dataItem) {
     const titleStr = dataItem.title;
