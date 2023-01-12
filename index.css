@@ -67,24 +67,27 @@ active {
     top: 100%;
     box-shadow: 0 5px 10px rgb(189, 189, 189);
     z-index: 10;
-    list-style: none;
-}
-
-.suggest__header {
-    font-size: 55%;
-    margin: 1rem 2rem;
-    color: var(--action-color);
-}
-
-.suggest__header-norec {
-    display: none;
-    font-size: 14px;
 }
 
 .suggest-list {
     list-style: none;
     font-size: 65%;
     padding: 0;
+    animation: animateFromBottom 1s;
+}
+
+.suggest-list-stored::before {
+    content: 'You searched';
+    display: block;
+    margin: 1rem 2rem;
+    color: var(--action-color);
+}
+
+.suggest-list-rec::before {
+    content: 'Recommendations';
+    display: block;
+    margin: 1rem 2rem;
+    color: var(--action-color);
 }
 
 .suggest-list__item {
@@ -129,6 +132,17 @@ active {
     height: 12px;
     width: 12px;
     margin-right: 5px;
+}
+
+.norec-message {
+    display: block;
+    margin: 1rem 2rem;
+    font-size: 65%;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.main-container__result {
+    display: none;
 }
 
 .art {

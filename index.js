@@ -4,12 +4,6 @@ const suggests = document.querySelector('.suggests');
 
 suggests.style.display = 'none';
 
-const suggestListStored = document.querySelector('.suggest-list-stored');
-const suggestListRec = document.querySelector('.suggest-list-rec');
-const suggestHeaderStored = document.querySelector('.suggest__header-stored');
-const suggestHeaderRec = document.querySelector('.suggest__header-rec');
-const suggestHeaderNoRec = document.querySelector('.suggest__header-norec');
-
 const searchHistoryList = document.querySelector('.search-history__list');
 const searchHistoryMessage = document.querySelector('.search-history__message');
 searchHistoryList.style.display = 'none';
@@ -18,11 +12,13 @@ searchHistoryMessage.style.display = 'none';
 const storageLoadedDataField = 'loadedData';
 const storageHistoryQueueField = 'historyQueue';
 
-const maxApiSuggestNumber = 5;
-const maxStoredSuggestNumber = 5;
-const maxSearchHistoryItemsNumber = 3;
+const MAX_SUGGEST_NUMBER = 10;
+const MAX_STORED_SUGGEST_NUMBER = 5;
+const MAX_SEARCH_HISTORY_ITEMS_NUMBER = 3;
 
 const errorMessage = document.querySelector('.error-message');
+
+const TIMEOUT_INTERVAL = 100;
 
 renderSearchHistory(localStorage.getItem(storageHistoryQueueField));
 window.addEventListener('focus', () => renderSearchHistory(localStorage.getItem(storageHistoryQueueField)));
@@ -30,24 +26,29 @@ window.addEventListener('focus', () => renderSearchHistory(localStorage.getItem(
 const resultContainer = document.querySelector('.main-container__result');
 resultContainer.style.display = 'none';
 
-searchInput.addEventListener('input', renderSuggestList);
-searchInput.addEventListener('focus', renderSuggestList);
+searchInput.addEventListener('focus', inputHandler);
+searchInput.addEventListener('input', inputHandler);
 
-document.addEventListener('click', (e) => {
-    if (e.target !== searchInput) {
+document.addEventListener('click', (event) => {
+    if (event.target !== searchInput) {
         suggests.style.display = 'none';
+    }
+});
+
+searchInput.setAttribute('tabindex', 0);
+
+searchInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+        suggests.style.display = 'none';
+        searchInput.value = '';
     }
 });
 
 const api = new SearchAPI();
 
 function SearchAPI() {
-    let dataCache = [];
-
     const buildUrl = (keyword) => {
-        return `https://api.smk.dk/api/v1/art/search?keys=${keyword}%2A&qfields=titles&qfields=creator&qfields=tags&qfields=content_subject&facets=has_image&filters=%5Bhas_image%3Atrue%5D&offset=0&rows=${
-            maxApiSuggestNumber + maxStoredSuggestNumber
-        }&lang=en`;
+        return `https://api.smk.dk/api/v1/art/search?keys=${keyword}%2A&qfields=titles&qfields=creator&qfields=tags&qfields=content_subject&facets=has_image&filters=%5Bhas_image%3Atrue%5D&offset=0&rows=${MAX_SUGGEST_NUMBER}&lang=en`;
     };
 
     const loadData = async (keyword) => {
@@ -67,7 +68,6 @@ function SearchAPI() {
 
     this.getDataByKeyword = async (keyword) => {
         const data = await loadData(keyword);
-        dataCache = [];
         const result = data.items.map((item) => {
             return {
                 id: item.object_number,
@@ -87,81 +87,98 @@ function SearchAPI() {
                 note: item.production ? item.production[0].creator_history : null,
             };
         });
-        dataCache = [...result];
-        return result;
-    };
 
-    this.getDataById = (id) => {
-        return dataCache.find((data) => data.id === id);
+        return result;
     };
 }
 
-async function renderSuggestList() {
-    suggestListStored.innerHTML = '';
-    suggestListRec.innerHTML = '';
+let timer = null;
+let keyword;
+let currentLocalSuggestLength = 0;
 
-    suggestHeaderStored.style.display = 'none';
-    suggestHeaderRec.style.display = 'none';
-    suggestHeaderNoRec.style.display = 'none';
-    suggests.style.display = 'none';
-
-    const keyword = searchInput.value.trim();
-
-    const dataStored = getMatchingLocalData(keyword);
-
-    searchInput.removeEventListener('input', renderSuggestList);
-    searchInput.removeEventListener('focus', renderSuggestList);
-    let dataLoaded;
-    try {
-        dataLoaded = await api.getDataByKeyword(keyword);
-    } catch (error) {
-        renderErrorMessage(error);
+function renderLocalSuggests() {
+    keyword = searchInput.value.trim();
+    suggests.innerHTML = '';
+    suggests.style.display = 'block';
+    const localSuggestArray = buildLocalSuggestArray(keyword);
+    currentLocalSuggestLength = localSuggestArray.length;
+    if (localSuggestArray.length > 0) {
+        suggests.appendChild(buildUlByDataArray(localSuggestArray, true));
     }
-    searchInput.addEventListener('input', renderSuggestList);
-    searchInput.addEventListener('focus', renderSuggestList);
+}
 
-    dataStored.length > 0 && (suggestHeaderStored.style.display = 'block');
-    dataStored.length > 0 && (suggests.style.display = 'block');
-
-    dataStored.forEach((dataItem) => {
-        const suggestListItem = buildSuggestItem(dataItem);
-        suggestListItem.classList.add('suggest-list__item-stored');
-        suggestListStored.appendChild(suggestListItem);
-        suggestListItem.addEventListener('click', () => {
-            updateHistoryQueue(dataItem);
-            renderResult(dataItem);
-        });
-    });
-
+function inputHandler() {
+    renderLocalSuggests();
     if (!keyword) {
         return;
     }
+    // Throttling
+    if (timer) {
+        clearTimeout(timer);
+    }
 
-    dataLoaded = dataLoaded.filter((data) => !dataStored.find((d) => d.id === data.id));
+    timer = setTimeout(() => {
+        buildApiSuggestArray(keyword)
+            .then((result) => {
+                if (result.dataArray.length === 0 || result.keyword !== keyword) {
+                    if (currentLocalSuggestLength === 0) {
+                        renderNoRecMessage();
+                    }
+                } else {
+                    renderLocalSuggests();
+                    suggests.appendChild(
+                        buildUlByDataArray(
+                            result.dataArray.slice(0, MAX_SUGGEST_NUMBER - currentLocalSuggestLength),
+                            false
+                        )
+                    );
+                }
+            })
+            .catch((error) => renderErrorMessage(error));
+    }, TIMEOUT_INTERVAL);
+}
 
-    dataLoaded.length > 0 && (suggestHeaderRec.style.display = 'block');
-    dataLoaded.length === 0 && (suggestHeaderNoRec.style.display = 'block');
+function buildLocalSuggestArray(keyword) {
+    return getMatchingLocalData(keyword).slice(0, MAX_STORED_SUGGEST_NUMBER);
+}
 
-    suggests.style.display = 'block';
+async function buildApiSuggestArray(keyword) {
+    const dataArray = await api.getDataByKeyword(keyword);
+    return { dataArray, keyword };
+}
 
-    dataLoaded = dataLoaded.slice(0, maxApiSuggestNumber + maxStoredSuggestNumber - dataStored.length);
-
-    dataLoaded.forEach((dataItem) => {
+function buildUlByDataArray(dataArray, isLocal) {
+    const ul = document.createElement('ul');
+    ul.classList.add('suggest-list');
+    if (isLocal) {
+        ul.classList.add('suggest-list-stored');
+    } else {
+        ul.classList.add('suggest-list-rec');
+    }
+    dataArray.forEach((dataItem) => {
         const suggestListItem = buildSuggestItem(dataItem);
-        suggestListRec.appendChild(suggestListItem);
+        if (isLocal) {
+            suggestListItem.classList.add('suggest-list__item-stored');
+        }
         suggestListItem.addEventListener('click', () => {
-            let localData = JSON.parse(localStorage.getItem(storageLoadedDataField));
-            if (localData) {
-                localData.push(dataItem);
-            } else {
-                localData = [dataItem];
+            if (!isLocal) {
+                updateStoredData(dataItem);
             }
-            localStorage.setItem(storageLoadedDataField, JSON.stringify(localData));
             updateHistoryQueue(dataItem);
             renderResult(dataItem);
         });
+        ul.appendChild(suggestListItem);
     });
+    return ul;
 }
+
+function updateStoredData(data) {
+    let localData = JSON.parse(localStorage.getItem(storageLoadedDataField));
+    localData = localData ? localData.concat(data) : [data];
+    localStorage.setItem(storageLoadedDataField, JSON.stringify(localData));
+}
+
+// /////////////////////
 
 function buildSuggestItem(dataItem) {
     const titleStr = dataItem.title;
@@ -244,7 +261,7 @@ function getMatchingLocalData(str) {
         return [];
     }
     if (str === '') {
-        return dataStored.splice(0, maxStoredSuggestNumber);
+        return dataStored;
     }
     dataStored.forEach((data) => {
         const creatorStr = data.creators.reduce((res, creator) => {
@@ -252,7 +269,7 @@ function getMatchingLocalData(str) {
         }, '');
         data.checkStr = (data.title + creatorStr).replaceAll(/\s/g, '').toLowerCase();
     });
-    return dataStored.filter((data) => data.checkStr.includes(str)).splice(0, maxStoredSuggestNumber);
+    return dataStored.filter((data) => data.checkStr.includes(str));
 }
 
 function renderSearchHistory() {
@@ -269,7 +286,6 @@ function renderSearchHistory() {
 
     const searchHistoryData = queue.map((id) => dataStoredArray.find((data) => data.id === id)).reverse();
 
-    // console.log(searchHistoryData);
     searchHistoryData.forEach((data) => {
         const searchHistoryItem = document.createElement('li');
         searchHistoryItem.textContent = data.title;
@@ -288,11 +304,19 @@ function updateHistoryQueue(data) {
         queue = [];
     }
     queue.push(data.id);
-    if (queue.length > maxSearchHistoryItemsNumber) {
+    if (queue.length > MAX_SEARCH_HISTORY_ITEMS_NUMBER) {
         queue.shift();
     }
     localStorage.setItem(storageHistoryQueueField, JSON.stringify(queue));
     return queue;
+}
+
+function renderNoRecMessage() {
+    suggests.innerHTML = '';
+    const message = document.createElement('div');
+    message.classList.add('norec-message');
+    message.textContent = 'No recommendations...';
+    suggests.appendChild(message);
 }
 
 function renderErrorMessage(error) {
